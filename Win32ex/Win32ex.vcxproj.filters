@@ -52,6 +52,9 @@
     <ClInclude Include="CObject.h">
       <Filter>Default</Filter>
     </ClInclude>
+    <ClInclude Include="struct.h">
+      <Filter>Engine\01. Header</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="small.ico">

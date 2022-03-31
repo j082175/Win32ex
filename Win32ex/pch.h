@@ -4,3 +4,5 @@
 
 #include "define.h"
 #include <Windows.h>
+#include "struct.h"
+#include <iostream>
