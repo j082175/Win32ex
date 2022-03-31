@@ -22,6 +22,9 @@
     <Filter Include="Engine\03. KeyMgr">
       <UniqueIdentifier>{040266c5-6d54-4ff8-8974-3b0b558e79f1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Engine\04. Object">
+      <UniqueIdentifier>{e97e73d7-4dff-4406-b9dd-e36040378958}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -46,6 +49,9 @@
       <Filter>Engine\03. KeyMgr</Filter>
     </ClInclude>
     <ClInclude Include="pch.h" />
+    <ClInclude Include="CObject.h">
+      <Filter>Default</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="small.ico">
@@ -63,6 +69,9 @@
       <Filter>Engine\03. KeyMgr</Filter>
     </ClCompile>
     <ClCompile Include="Win32ex.cpp" />
+    <ClCompile Include="CObject.cpp">
+      <Filter>Engine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Win32ex.rc">

@@ -6,6 +6,7 @@
 #include "Win32ex.h"
 
 #include "CCore.h"
+#include "CObject.h"
 
 #define MAX_LOADSTRING 100
 

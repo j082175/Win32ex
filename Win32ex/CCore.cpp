@@ -1,5 +1,8 @@
 #include "pch.h"
 #include "CCore.h"
+#include "CObject.h"
+
+CObject g_obj;
 
 // CCore2* CCore2::getInstance()
 //{
@@ -61,18 +64,61 @@
 
 	  m_hDC = GetDC(m_hWnd); // dc
 
+
+	  g_obj.m_ptPos = POINT{ m_ptResolution.x / 2, m_ptResolution.y / 2 };
+	  g_obj.m_ptScale = POINT{ 100,100 };
+
+
 	  return S_OK;
   }
 
+ 
+
   void CCore::progress()
   {
+	  // 화면에 계속 그리는 부분
+	  // 
+	  // ----------- 렌더링이란 매 순간 순간마다 그림을 다시 처음부터 그리는건데 ---------
+	  //------------ 컴퓨터가 존나빨라서 우리는 이게 연속적인 것처럼 느낀다. ---------
+
+	  update();
+
+	  render();
 
   }
 
-   CCore::CCore()
+  // 옵젝의 변경점을 처리
+  void CCore::update()
+  {
+	  if (GetAsyncKeyState(VK_LEFT) & 0x8000)
+	  {
+		  g_obj.m_ptPos.x -= 1;
+	  }
+
+	  if (GetAsyncKeyState(VK_RIGHT) & 0x8000)
+	  {
+		  g_obj.m_ptPos.x += 1;
+	  }
+  }
+
+  // 변경된 옵젝을 그린다
+  void CCore::render()
+  {
+	  Rectangle(m_hDC,
+		  g_obj.m_ptPos.x - g_obj.m_ptScale.x / 2,
+		  g_obj.m_ptPos.y - g_obj.m_ptScale.y / 2,
+		  g_obj.m_ptPos.x + g_obj.m_ptScale.x / 2,
+		  g_obj.m_ptPos.y + g_obj.m_ptScale.y / 2
+	  );
+  }
+
+  CCore::CCore()
    :m_hWnd(0),
 	   m_hDC(0),
 	   m_ptResolution{}
    {}
 
-   CCore::~CCore() {}
+   CCore::~CCore() 
+   {
+	   ReleaseDC(m_hWnd, m_hDC);
+   }
