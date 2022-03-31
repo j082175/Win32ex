@@ -1,13 +1,17 @@
 ﻿// Win32ex.cpp : 애플리케이션에 대한 진입점을 정의합니다.
 //
 
+#include "pch.h"
 #include "framework.h"
 #include "Win32ex.h"
+
+#include "CCore.h"
 
 #define MAX_LOADSTRING 100
 
 // 전역 변수:
 HINSTANCE hInst;                                // 현재 인스턴스입니다.
+HWND g_hWnd; // 메인 윈도우 핸들
 WCHAR szTitle[MAX_LOADSTRING];                  // 제목 표시줄 텍스트입니다.
 WCHAR szWindowClass[MAX_LOADSTRING];            // 기본 창 클래스 이름입니다.
 
@@ -50,21 +54,74 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_WIN32EX));
 
 
+    if (FAILED(CCore::getInstance()->init(g_hWnd,POINT{1280,768})))
+    {
+        MessageBox(nullptr, _T("객체 초기화 실패"), _T("Error"), MB_OK);
+
+        return FALSE;  
+    }
+    
+
+
+
     MSG msg;
     
 
-    // 기본 메시지 루프입니다:
+    // /*기본 메시지 루프입니다:
+    // 
+    // 
     // 이 프로그램에서 발생한 메세지 큐들을 꺼내보는 것
-    while (GetMessage(&msg, nullptr, 0, 0)) // msg.message == WM_QUIT 일때 false 반환 -> while 문 종료 -> 프로그램 종료
+    // messeage queue 에 메시지가 들어올때까지 대기 즉 메시지가 있어여만 반환됨.*/
+    //while (GetMessage(&msg, nullptr, 0, 0)) // msg.message == WM_QUIT 일때 false 반환 -> while 문 종료 -> 프로그램 종료
+    //{
+
+
+    //    // 메시지 유무와 관계없이 항상 반환됨. 
+    //    // 메시지가 있을때 true, 없을때 false 반환.
+    //    // 루프를 끝내고 싶다면 WM_QUIT 메시지가 들어왔을때의 조건문을 이용.
+    //    //PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE); // PM_REMOVE : 메시지를 확인하고 확인한 메시지를 지우는 옵션
+    //    
+
+
+    //    if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
+    //    {
+    //        TranslateMessage(&msg);
+    //        DispatchMessage(&msg);
+    //    }
+    //}
+    
+    
+
+
+    while (true)
     {
-        if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
+
+        // 메시지가 발생했을때
+        if (PeekMessage(&msg,nullptr,0,0,PM_REMOVE))
         {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
+            if (WM_QUIT == msg.message)
+            {
+                break;
+            }
+
+            if (!TranslateAccelerator(msg.hwnd,hAccelTable,&msg))
+            {
+                TranslateMessage(&msg);
+                DispatchMessage(&msg);
+            }
+        }
+        // 메시지가 발생하지 않는 대부분의 시간 (CPU의 메시지 처리속도는 엄청나므로 대부분의 시간을 논다. 그러지 않기 위해서 이부분을 설정)
+        // ↓↓↓↓↓ 즉 게임코드가 들어갈 자리 ↓↓↓↓↓
+        else
+        {
+            CCore::getInstance()->progress();
         }
     }
-    
-    return (int) msg.wParam;
+
+
+    return (int)msg.wParam;
+
+
 }
 
 
@@ -109,16 +166,16 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
    hInst = hInstance; // 인스턴스 핸들을 전역 변수에 저장합니다.
    
-   HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
+   g_hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW, // 윈도우 생성후 전역변수에 핸들값 저장
       CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
 
-   if (!hWnd)
+   if (!g_hWnd)
    {
       return FALSE;
    }
 
-   ShowWindow(hWnd, nCmdShow);
-   UpdateWindow(hWnd);
+   ShowWindow(g_hWnd, nCmdShow);
+   UpdateWindow(g_hWnd);
 
    return TRUE;
 }
@@ -148,11 +205,14 @@ struct tObjInfo
 vector<tObjInfo> g_vecInfo;
 
 
-// 좌 상단
+// Rectangle 을 만들때 필요한 좌 상단, 우 하단 좌표값을 위한 변수들
+// 
+// 좌 상단 좌표값( x,y ) 를 담은 구조체
 POINT g_ptLT;
-// 우 하단
+// 우 하단 좌표값( x,y ) 를 담은 구조체
 POINT g_ptRB;
 
+bool isClicked = false;
 
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) // wParam : key 값 lParam : 마우스 값 
@@ -203,9 +263,37 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
             HBRUSH hDefaultBrush = (HBRUSH)SelectObject(hdc, hBlueBrush);
 
 
-           // Rectangle(hdc, 10, 10, 110, 110);
-            Rectangle(hdc, g_ptLT.x, g_ptLT.y, g_ptRB.x, g_ptRB.y);
 
+            //Rectangle(hdc, 1180, 668, 1280, 768);
+
+
+
+           // //Rectangle 은 그려질 프로세스의 핸들값을 첫번째 인자로 받는다.
+           //// Rectangle(hdc, 10, 10, 110, 110);
+           // if (isClicked)
+           // {
+           // Rectangle(hdc, g_ptLT.x, g_ptLT.y, g_ptRB.x, g_ptRB.y);
+
+           // }
+           // //for (int i = 0; i < g_vecInfo.size(); i++)
+           // //{
+           // //    Rectangle(hdc, 
+           // //        g_vecInfo[i].g_ptObjectPos.x - (g_vecInfo[i].g_ptObjScale.x / 2),
+           // //        g_vecInfo[i].g_ptObjectPos.y - (g_vecInfo[i].g_ptObjScale.y / 2),
+           // //        g_vecInfo[i].g_ptObjectPos.x + (g_vecInfo[i].g_ptObjScale.x / 2),
+           // //        g_vecInfo[i].g_ptObjectPos.y + (g_vecInfo[i].g_ptObjScale.y / 2)
+           // //    );
+           // //}
+
+           // for (int i = 0; i < g_vecInfo.size(); i++)
+           // {
+           //     Rectangle(hdc,
+           //         g_vecInfo[i].g_ptObjectPos.x,
+           //         g_vecInfo[i].g_ptObjectPos.y,
+           //         g_vecInfo[i].g_ptObjScale.x,
+           //         g_vecInfo[i].g_ptObjScale.y
+           //     );
+           // }
 
             SelectObject(hdc, hDefaultPen); // 기존 검은색으로 다시변경
             SelectObject(hdc, hDefaultBrush);
@@ -228,28 +316,31 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
         switch (wParam)
         {
 
-        case VK_UP:
-            //g_ptObjectPos.y -= 10;
-            InvalidateRect(hWnd,nullptr,true); // 무효화 됬다고 윈도우에 강제적으로 알려줌 2번째 인자가 nullptr이면 전체영역 3번째 인자가 true 면 기존의 영역을 전부 지움
-            // WM_PAINT 를 다시 실행하게끔함
-            break;
+            //방향키 조작 부문
+            
+        //case VK_UP:
+        //    g_ptObjectPos.y -= 10;
+        //    InvalidateRect(hWnd,nullptr,true); // 무효화 됬다고 윈도우에 강제적으로 알려줌 2번째 인자가 nullptr이면 전체영역 3번째 인자가 true 면 기존의 영역을 전부 지움
+        //    // WM_PAINT 를 다시 실행하게끔함
+        //    break;
 
-        case VK_DOWN:
-           // g_ptObjectPos.y += 10;
-            InvalidateRect(hWnd, nullptr, true);
-            break;
+        //case VK_DOWN:
+        //    g_ptObjectPos.y += 10;
+        //    InvalidateRect(hWnd, nullptr, true);
+        //    break;
 
-        case VK_RIGHT:
-           // g_ptObjectPos.x += 10;
-            InvalidateRect(hWnd, nullptr, true);
-            break;
+        //case VK_RIGHT:
+        //    g_ptObjectPos.x += 10;
+        //    InvalidateRect(hWnd, nullptr, true);
+        //    break;
 
-        case VK_LEFT:
-          //  g_ptObjectPos.x -= 10;
-            InvalidateRect(hWnd, nullptr, true);
-            break;
+        //case VK_LEFT:
+        //    g_ptObjectPos.x -= 10;
+        //    InvalidateRect(hWnd, nullptr, true);
+        //    break;
 
             
+            // W 키 눌렀을때
 
         case 'W': // 소문자는 안된다
         {
@@ -262,24 +353,42 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
     }
     break;
 
+
+
     case WM_LBUTTONDOWN://마우스 왼쪽버튼 클릭할때
     {
-       g_ptLT.x = LOWORD(lParam);
-       g_ptLT.y = HIWORD(lParam);
+        isClicked = true;
+       g_ptLT.x = LOWORD(lParam); // x 좌표 get
+       g_ptLT.y = HIWORD(lParam); // y 좌표 get
     }
     break;
 
     case WM_MOUSEMOVE: //마우스 움직일때
     {
+        //isClicked = false;
         g_ptRB.x = LOWORD(lParam);
         g_ptRB.y = HIWORD(lParam);
-        InvalidateRect(hWnd, nullptr, true);
+        InvalidateRect(hWnd, nullptr, true); // 마우스가 움직이는 동안에도 무효화 처리함. 고로 실시간으로 변화 가능
     }
     break;
 
     case WM_LBUTTONUP:
     {
+        isClicked = false;
+        tObjInfo I1{};
 
+        /*I1.g_ptObjectPos.x = (g_ptLT.x + g_ptRB.x) / 2;
+        I1.g_ptObjectPos.y = (g_ptLT.y + g_ptRB.y) / 2;
+        I1.g_ptObjScale.x = abs(g_ptLT.x - g_ptRB.x);
+        I1.g_ptObjScale.y = abs(g_ptLT.y - g_ptRB.y);*/
+
+        I1.g_ptObjectPos.x = g_ptLT.x;
+        I1.g_ptObjectPos.y = g_ptLT.y;
+        I1.g_ptObjScale.x = g_ptRB.x;
+        I1.g_ptObjScale.y = g_ptRB.y;
+
+        g_vecInfo.push_back(I1);
+        InvalidateRect(hWnd, nullptr, true);
     }
     break;
 
