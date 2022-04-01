@@ -19,11 +19,14 @@
     <Filter Include="Engine\02. Core">
       <UniqueIdentifier>{a4d06207-02ec-42e6-99fa-34730090f5b5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Engine\03. KeyMgr">
-      <UniqueIdentifier>{040266c5-6d54-4ff8-8974-3b0b558e79f1}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Engine\04. Object">
       <UniqueIdentifier>{e97e73d7-4dff-4406-b9dd-e36040378958}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\03. Manager">
+      <UniqueIdentifier>{040266c5-6d54-4ff8-8974-3b0b558e79f1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\03. Manager\KeyMgr">
+      <UniqueIdentifier>{fa766620-109a-47af-bb84-89dfab69586c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -45,15 +48,18 @@
     <ClInclude Include="define.h">
       <Filter>Engine\01. Header</Filter>
     </ClInclude>
-    <ClInclude Include="CKeyMgr.h">
-      <Filter>Engine\03. KeyMgr</Filter>
-    </ClInclude>
     <ClInclude Include="pch.h" />
-    <ClInclude Include="CObject.h">
-      <Filter>Default</Filter>
-    </ClInclude>
     <ClInclude Include="struct.h">
       <Filter>Engine\01. Header</Filter>
+    </ClInclude>
+    <ClInclude Include="CObject.h">
+      <Filter>Engine\04. Object</Filter>
+    </ClInclude>
+    <ClInclude Include="CKeyMgr.h">
+      <Filter>Engine\03. Manager\KeyMgr</Filter>
+    </ClInclude>
+    <ClInclude Include="CTimeMgr.h">
+      <Filter>Default</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -68,11 +74,14 @@
     <ClCompile Include="CCore.cpp">
       <Filter>Engine\02. Core</Filter>
     </ClCompile>
-    <ClCompile Include="CKeyMgr.cpp">
-      <Filter>Engine\03. KeyMgr</Filter>
-    </ClCompile>
     <ClCompile Include="Win32ex.cpp" />
     <ClCompile Include="CObject.cpp">
+      <Filter>Engine\04. Object</Filter>
+    </ClCompile>
+    <ClCompile Include="CKeyMgr.cpp">
+      <Filter>Engine\03. Manager\KeyMgr</Filter>
+    </ClCompile>
+    <ClCompile Include="CTimeMgr.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
   </ItemGroup>

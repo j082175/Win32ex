@@ -10,4 +10,5 @@ CObject::CObject()
 
 CObject::~CObject()
 {
+
 }

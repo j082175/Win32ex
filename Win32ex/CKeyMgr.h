@@ -3,10 +3,16 @@
 
 class CKeyMgr
 {
+public:
 	SINGLE(CKeyMgr);
 
 private:
-	CKeyMgr(){}
-	~CKeyMgr(){}
+	//CKeyMgr();
+	//~CKeyMgr();
+
+public:
+
+
+	void init();
 };
 

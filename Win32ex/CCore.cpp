@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "CCore.h"
 #include "CObject.h"
+#include "CTimeMgr.h"
+#include "CKeyMgr.h"
 
 CObject g_obj;
 
@@ -59,13 +61,18 @@ int CCore::init(HWND _hWnd, POINT _ptResolution)  //초기화가 성공했는지 실패했는
 	// 보통 리턴값이 클때 이러한 형태를 많이 취한다.
 
 
-	SetWindowPos(m_hWnd, nullptr, 100, 100, rt.right - rt.left, rt.bottom - rt.top, 0);
+	SetWindowPos(m_hWnd, nullptr, 100, 100, rt.right - rt.left, rt.bottom - rt.top, 0); // 윈도우는 내부에 각각의 가로세로 픽셀을 곱한 비트맵을 가지게됨
 
 
 	m_hDC = GetDC(m_hWnd); // dc
 
 
-	g_obj.SetPos(Vec2(m_ptResolution.x / 2, m_ptResolution.y / 2));
+	//Manager 초기화
+	CTimeMgr::getInstance()->init();
+	CKeyMgr::getInstance()->init();
+	
+
+	g_obj.SetPos(Vec2(float(m_ptResolution.x / 2), float(m_ptResolution.y / 2)));
 	g_obj.SetScale(Vec2(100, 100));
 
 
@@ -85,6 +92,8 @@ void CCore::progress()
 
 	render();
 
+	CTimeMgr::getInstance()->update();
+
 }
 
 // 옵젝의 변경점을 처리
@@ -94,18 +103,19 @@ void CCore::update()
 
 	if (GetAsyncKeyState(VK_LEFT) & 0x8000)
 	{
-		vPos.x -= 1;
+		vPos.x -= 200.f * CTimeMgr::getInstance()->GetfDT();
 	}
 
 	if (GetAsyncKeyState(VK_RIGHT) & 0x8000)
 	{
-		vPos.x += 1;
+		vPos.x += 200.f * CTimeMgr::getInstance()->GetfDT();
 	}
 
 	g_obj.SetPos(vPos);
 }
 
 // 변경된 옵젝을 그린다
+// -- 
 void CCore::render()
 {
 
